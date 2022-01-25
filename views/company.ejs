@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+      crossorigin="anonymous"
+    ></script>
+    <title>Comapny List</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="my-4">
+        <button
+          type="button"
+          class="btn btn-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#creationModal"
+        >
+          create
+        </button>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">name</th>
+            <th scope="col">registrationNumber</th>
+            <th scope="col">city</th>
+            <th scope="col">state</th>
+            <th scope="col">phoneNumber</th>
+            <th scope="col">createdAt</th>
+            <th scope="col">panel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% companies.forEach((element, index) => { %>
+          <tr>
+            <th scope="row"><%= index+1%></th>
+            <td><%= element.name%></td>
+            <td><%= element.registrationNumber%></td>
+            <td><%= element.city%></td>
+            <td><%= element.state%></td>
+            <td><%= element.phoneNumber%></td>
+            <td><%= element.createdAt%></td>
+            <td><a type="button" href="/company/<%= element._id%>" class="btn btn-warning">edit</a></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- creation modal -->
+    <div
+      class="modal fade"
+      id="creationModal"
+      tabindex="-1"
+      aria-labelledby="creationModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="creationModalLabel">Add company</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <form id="creationForm">
+          <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">name</label>
+                <input type="text" class="form-control" name="name" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">registration number</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  name="registrationNumber"
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">city</label>
+                <input type="text" class="form-control" name="city" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">state</label>
+                <input type="text" class="form-control" name="state" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">phone number</label>
+                <input type="text" class="form-control" name="phoneNumber" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">created at</label>
+                <input type="text" class="form-control" name="createdAt" />
+              </div>
+              <div class="alert alert-danger d-none" id="alert" role="alert">
+                A simple danger alert—check it out!
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+              <button type="submit" class="btn btn-primary">Add</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+        const myAlert = document.getElementById("alert")
+
+      async function request(method, url = '', data) {
+        const options = {
+            method, 
+            referrerPolicy: 'no-referrer',
+            credentials: 'same-origin',
+            cache: 'no-cache',
+            mode: 'cors'
+        }
+        if (!!data){
+          options['body'] = JSON.stringify(data)
+          options['headers'] =  {
+            'Content-Type': 'application/json'
+          }
+        }
+        // Default options are marked with *
+        const response = await fetch(url, options);
+        return response.json(); // parses JSON response into native JavaScript objects
+      }
+      document
+        .getElementById("creationForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const body = {};
+          const inputs = document.querySelectorAll("#creationForm input")
+          for (const input of inputs) {
+            if (!input.value) continue;
+            body[input.getAttribute('name')] = input.value
+          }
+          request("POST",'/company',body).then(result => {
+              if (!!result.msg) {
+                myAlert.innerText = result.msg
+                myAlert.setAttribute('class', myAlert.className.replace("d-none", ''))
+                setTimeout(function() {
+                    myAlert.setAttribute('class', myAlert.className+' d-none')
+                }, 5000)
+              } else {
+                window.location.href = "/company"
+              }
+          })
+        });
+
+        function remove(id) {
+            console.log(id);
+            request("DELETE", `/company/${id}`).then(result => {
+              if (!!result.msg) {
+                myAlert.innerText = result.msg
+                myAlert.setAttribute('class', myAlert.className.replace("d-none", ''))
+                setTimeout(function() {
+                    myAlert.setAttribute('class', myAlert.className+' d-none')
+                }, 5000)
+              } else {
+                window.location.href = "/company"
+              }
+          })
+        }
+    </script>
+  </body>
+</html>
